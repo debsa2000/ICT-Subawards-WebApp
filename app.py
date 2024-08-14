@@ -2,7 +2,6 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from PIL import Image
-import numpy as np
 
 img = Image.open('images/ICTlogo.png')
 st.image(img)
