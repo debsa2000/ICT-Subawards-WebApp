@@ -67,27 +67,27 @@ for e in years_selected:
     if e=="2020":
         df_one_2020 = df_one[df_one['Project Attribute'].isin(["IDOT Share FY2020", "Cost Share FY2020", "IDOT Sub Admin Cost FY2020"])]
         pie_chart_2020 = px.pie(df_one_2020, values='Value', names='Project Attribute')
-        if check_empty_plot(pie_chart_2020)==True:
+        if check_empty_plot(pie_chart_2020)==False:
             st.plotly_chart(pie_chart_2020)
     if e=="2021":
         df_one_2021 = df_one[df_one['Project Attribute'].isin(["IDOT Share FY2021", "Cost Share FY2021", "IDOT Sub Admin Cost FY2021"])]
         pie_chart_2021 = px.pie(df_one_2021, values='Value', names='Project Attribute')
-        if check_empty_plot(pie_chart_2021)==True:
+        if check_empty_plot(pie_chart_2021)==False:
             st.plotly_chart(pie_chart_2021)
     if e=="2022":
         df_one_2022 = df_one[df_one['Project Attribute'].isin(["IDOT Share FY2022", "Cost Share FY2022", "IDOT Sub Admin Cost FY2022"])]
         pie_chart_2022 = px.pie(df_one_2022, values='Value', names='Project Attribute')
-        if check_empty_plot(pie_chart_2022)==True:
+        if check_empty_plot(pie_chart_2022)==False:
             st.plotly_chart(pie_chart_2022)
     if e=="2023":
         df_one_2023 = df_one[df_one['Project Attribute'].isin(["IDOT Share FY2023", "Cost Share FY2023", "IDOT Sub Admin Cost FY2023"])]
         pie_chart_2023 = px.pie(df_one_2023, values='Value', names='Project Attribute')
-        if check_empty_plot(pie_chart_2023)==True:
+        if check_empty_plot(pie_chart_2023)==False:
             st.plotly_chart(pie_chart_2023)
     if e=="2024":
         df_one_2024 = df_one[df_one['Project Attribute'].isin(["IDOT Share FY2024", "Cost Share FY2024", "IDOT Sub Admin Cost FY2024"])]
         pie_chart_2024 = px.pie(df_one_2024, values='Value', names='Project Attribute')
-        if check_empty_plot(pie_chart_2024)==True:
+        if check_empty_plot(pie_chart_2024)==False:
             st.plotly_chart(pie_chart_2024)
 
 
