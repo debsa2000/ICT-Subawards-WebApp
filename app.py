@@ -36,25 +36,52 @@ sum_IDOTSubAdminCost = 0
 for i, row in df_one.iterrows():
     if "IDOT Share FY" in row['Project Attribute']:
         sum_IDOTShare = sum_IDOTShare+row['Value']
-        print("sum_IDOTShare:", sum_IDOTShare)
+        # print("sum_IDOTShare:", sum_IDOTShare)
     if "Cost Share FY" in row['Project Attribute']:
         sum_CostShare = sum_CostShare+row['Value']
-        print("sum_CostShare:", sum_CostShare)
+        # print("sum_CostShare:", sum_CostShare)
     if "IDOT Sub Admin Cost FY" in row['Project Attribute']:
         sum_IDOTSubAdminCost = sum_IDOTSubAdminCost+row['Value']
-        print("sum_IDOTSubAdminCost:", sum_IDOTSubAdminCost)
+        # print("sum_IDOTSubAdminCost:", sum_IDOTSubAdminCost)
 
 total_sum=sum_IDOTShare+sum_CostShare+sum_IDOTSubAdminCost
-total_alocated_budget = df_one.loc[6, 'Value']
+total_allocated_budget = df_one.loc[6, 'Value']
 
-pie_chart = px.pie(values=[sum_IDOTShare, sum_CostShare, sum_IDOTSubAdminCost], names=['sum_IDOTShare', 'sum_CostShare', 'sum_IDOTSubAdminCost'])
-st.plotly_chart(pie_chart)
+pie_chart_1 = px.pie(values=[sum_IDOTShare, sum_CostShare, sum_IDOTSubAdminCost],
+                     names=['sum_IDOTShare', 'sum_CostShare', 'sum_IDOTSubAdminCost'])
+pie_chart_1.update_traces(textposition='outside', textinfo='percent+label')
+pie_chart_1.update_layout(showlegend=False)
+st.plotly_chart(pie_chart_1, use_container_width=True)
 
-if total_sum==total_alocated_budget:
+if total_sum==total_allocated_budget:
     st.text("FY18-24 Subaward Total is equal to IDOT share + Cost share + Subadmin cost")
 else:
     st.text("FY18-24 Subaward Total is not equal to IDOT share + Cost share + Subadmin cost")
 
+
+
+total_expenditure_to_date = df_one.loc[df_one['Project Attribute']=="Total Bills Recd. to Date"]['Value'].item()
+total_visible_to_sub = sum_IDOTShare+sum_CostShare
+
+pie_chart_2 = px.pie(values=[total_expenditure_to_date/total_visible_to_sub, 1-total_expenditure_to_date/total_visible_to_sub],
+                     names=['total spent to date of total visible to sub','amount left to be utlized'])
+pie_chart_2.update_traces(textposition='outside', textinfo='percent+label')
+pie_chart_2.update_layout(showlegend=False)
+st.plotly_chart(pie_chart_2, use_container_width=True)
+
+cost_share_required_to_date = total_expenditure_to_date/3
+print(cost_share_required_to_date)
+cost_share_done_to_date = df_one.loc[df_one['Project Attribute']=="Cost Share Recd. To Date"]['Value'].item()
+print(cost_share_done_to_date)
+
+if cost_share_done_to_date<=cost_share_required_to_date:
+    pie_chart_3 = px.pie(values=[cost_share_done_to_date/cost_share_required_to_date, 1-cost_share_done_to_date/cost_share_required_to_date],
+                     names=['current cost share','remaining cost share required'])
+    pie_chart_3.update_traces(textposition='outside', textinfo='percent+label')
+    pie_chart_3.update_layout(showlegend=False)
+    st.plotly_chart(pie_chart_3, use_container_width=True)
+else:
+    st.text("Cost share recorded to date exceeds cost share required according to expenditure to date.")
 
 with st.form("add_new_invoice_form"):
     st.write("Add new invoice")
