@@ -1,102 +1,20 @@
-import streamlit as st
-import plotly.express as px
-from preprocessing import get_dataframe
 from streamlit_navigation_bar import st_navbar
+import pages_folder
 
-print("Starting app.py")
+# st.set_page_config(initial_sidebar_state="collapsed")
+style = {
+    "nav": {
+        "background-color": " #FF5F05",
+        "justify-content": "left",
+    }
+}
+page = st_navbar(pages=["All Projects View", "Project View", "Add Invoice", "Add Project"], logo_path='images/ICTlogo.svg',styles=style)
 
-page_names=['Project View','Analytics']
-logopath="images/ICTlogo.svg"
-# styles = {
-#     "nav": {
-#         "background-color": " #FF5F05",
-#         "justify-content": "left",
-#     }
-# }
-nav_bar = st_navbar(pages=page_names, logo_path=logopath)
-
-df = get_dataframe()
-df.rename(columns={ df.columns[6]: "FY18-FY24 Subaward Total" }, inplace = True)
-st.dataframe(df.astype(str))
-
-all_projects_list = df['Project Number:'].unique().tolist()
-project_selected = st.selectbox('Project Number:', all_projects_list)
-
-df_one = df[df['Project Number:']==project_selected]
-df_one = df_one.transpose()
-df_one = df_one.reset_index()
-df_one.columns = ['Project Attribute', 'Value']
-df_one = df_one[df_one['Value'].notna()]
-
-st.dataframe(df_one.astype(str))
-
-sum_IDOTShare = 0
-sum_CostShare = 0
-sum_IDOTSubAdminCost = 0
-for i, row in df_one.iterrows():
-    if "IDOT Share FY" in row['Project Attribute']:
-        sum_IDOTShare = sum_IDOTShare+row['Value']
-        # print("sum_IDOTShare:", sum_IDOTShare)
-    if "Cost Share FY" in row['Project Attribute']:
-        sum_CostShare = sum_CostShare+row['Value']
-        # print("sum_CostShare:", sum_CostShare)
-    if "IDOT Sub Admin Cost FY" in row['Project Attribute']:
-        sum_IDOTSubAdminCost = sum_IDOTSubAdminCost+row['Value']
-        # print("sum_IDOTSubAdminCost:", sum_IDOTSubAdminCost)
-
-total_sum=sum_IDOTShare+sum_CostShare+sum_IDOTSubAdminCost
-total_allocated_budget = df_one.loc[6, 'Value']
-
-pie_chart_1 = px.pie(values=[sum_IDOTShare, sum_CostShare, sum_IDOTSubAdminCost],
-                     names=['sum_IDOTShare', 'sum_CostShare', 'sum_IDOTSubAdminCost'])
-pie_chart_1.update_traces(textposition='outside', textinfo='percent+label')
-pie_chart_1.update_layout(showlegend=False)
-st.plotly_chart(pie_chart_1, use_container_width=True)
-
-if total_sum==total_allocated_budget:
-    st.text("FY18-24 Subaward Total is equal to IDOT share + Cost share + Subadmin cost")
-else:
-    st.text("FY18-24 Subaward Total is not equal to IDOT share + Cost share + Subadmin cost")
-
-
-
-total_expenditure_to_date = df_one.loc[df_one['Project Attribute']=="Total Bills Recd. to Date"]['Value'].item()
-total_visible_to_sub = sum_IDOTShare+sum_CostShare
-
-pie_chart_2 = px.pie(values=[total_expenditure_to_date/total_visible_to_sub, 1-total_expenditure_to_date/total_visible_to_sub],
-                     names=['total spent to date of total visible to sub','amount left to be utlized'])
-pie_chart_2.update_traces(textposition='outside', textinfo='percent+label')
-pie_chart_2.update_layout(showlegend=False)
-st.plotly_chart(pie_chart_2, use_container_width=True)
-
-cost_share_required_to_date = total_expenditure_to_date/3
-print(cost_share_required_to_date)
-cost_share_done_to_date = df_one.loc[df_one['Project Attribute']=="Cost Share Recd. To Date"]['Value'].item()
-print(cost_share_done_to_date)
-
-if cost_share_done_to_date<=cost_share_required_to_date:
-    pie_chart_3 = px.pie(values=[cost_share_done_to_date/cost_share_required_to_date, 1-cost_share_done_to_date/cost_share_required_to_date],
-                     names=['current cost share','remaining cost share required'])
-    pie_chart_3.update_traces(textposition='outside', textinfo='percent+label')
-    pie_chart_3.update_layout(showlegend=False)
-    st.plotly_chart(pie_chart_3, use_container_width=True)
-else:
-    st.text("Cost share recorded to date exceeds cost share required according to expenditure to date.")
-
-with st.form("add_new_invoice_form"):
-    st.write("Add new invoice")
-    
-    inv_start_date = st.date_input("Select start date for invoice billing period:", format="MM-DD-YYYY", value=None)
-    inv_end_date = st.date_input("Select end date for invoice billing period:", format="MM-DD-YYYY", value=None)
-    # print(inv_start_date, inv_start_date)
-    
-    invoice_amount = st.text_input("Enter invoice amount:")
-    # print(invoice_amount)
-    
-    invoice_cost_share = st.text_input("Enter invoice cost share amount:")
-    # print(invoice_cost_share)
-   
-    submitted = st.form_submit_button("Submit")
-    
-    if submitted:
-        st.write("Start date", inv_start_date, "End date", inv_end_date, "Inv $", invoice_amount, "Inv Cost Share", invoice_cost_share)
+if page == "All Projects View":
+    pages_folder.all_projects_view.all_projects_view_func()
+elif page == "Project View":
+    pages_folder.project_view.project_view_func()
+elif page == "Add Invoice":
+    pages_folder.add_invoice.add_invoice_func()
+elif page == "Add Project":
+    pages_folder.add_project.add_project_func()
