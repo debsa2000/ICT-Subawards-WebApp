@@ -1,7 +1,6 @@
 from streamlit_navigation_bar import st_navbar
 import pages_folder
 
-# st.set_page_config(initial_sidebar_state="collapsed")
 style = {
     "nav": {
         "background-color": " #FF5F05",
@@ -18,3 +17,4 @@ elif page == "Add Invoice":
     pages_folder.add_invoice.add_invoice_func()
 elif page == "Add Project":
     pages_folder.add_project.add_project_func()
+
