@@ -1,7 +1,5 @@
 import streamlit as st
 import mysql.connector as connection
-import pandas as pd
-
 
 def add_invoice_func():
     
