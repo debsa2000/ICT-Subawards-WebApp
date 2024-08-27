@@ -1,17 +1,33 @@
 import streamlit as st
 import mysql.connector as connection
+import pandas as pd
+
 
 def add_invoice_func():
+
+    try:
+        mydb = connection.connect(host="ls-0d272b6d055951932dd7f1404e6322222517d8bd.caoof4uxeqnq.us-east-1.rds.amazonaws.com",
+                                  database = 'dbmaster_deb',
+                                  user="subaward_user",
+                                  passwd="ict_use_webapp",
+                                  use_pure=True)
+        query1 = "SELECT * FROM project;"
+        result_df = pd.read_sql(query1,mydb)
+        existing_projects_list = result_df['project_number'].unique().tolist()
+        mydb.close()
+    except Exception as e:
+        mydb.close()
+        st.write(str(e))
     
     with st.form("add_new_invoice_form"):
         st.write("Add new invoice")
         
-        inv_project = st.text_input("Enter which project:")
-        inv_number = st.number_input("Enter invoice number: ")
+        inv_project = st.selectbox('Select existing project that invoice belongs to:', existing_projects_list)
+        inv_number = st.number_input("Enter invoice number: ", step=1)
         inv_start_date = st.date_input("Select start date for invoice billing period:", format="MM-DD-YYYY", value=None)
         inv_end_date = st.date_input("Select end date for invoice billing period:", format="MM-DD-YYYY", value=None)      
-        inv_amount = st.text_input("Enter invoice amount:")
-        inv_cost_share = st.text_input("Enter invoice cost share amount:")
+        inv_amount = st.text_input("Enter invoice amount in USD:")
+        inv_cost_share = st.text_input("Enter cost share amount for this invoice in USD:")
         
         final = st.checkbox("This is the final invoice")
         if final:

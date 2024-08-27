@@ -6,6 +6,10 @@ def project_view_func():
     df = preprocessing.get_dataframe()
     df.rename(columns={ df.columns[6]: "FY18-FY24 Subaward Total" }, inplace = True)
 
+    
+    iga_selected = st.selectbox("Select IGA: ",("FY 2018 - 2024", "FY 2025 - 2030"))
+
+
     all_projects_list = df['Project Number:'].unique().tolist()
     project_selected = st.selectbox('Project Number:', all_projects_list)
 
@@ -25,8 +29,6 @@ def project_view_func():
 
     #Pie - Total Obligated Subaward costs
     # itd_exp = df_one.loc[df_one['Project Attribute']=="Total Bills Recd. to Date"]['Value'].item()
-
-    iga_selected = st.selectbox("Select IGA: ",("FY 2018 - 2024", "FY 2025 - 2030"))
 
     if iga_selected=="FY 2018 - 2024":
         year_selected = st.selectbox("Select year until when you want to view budget",("2018", "2019", "2020", "2021", "2022", "2023", "2024"))
