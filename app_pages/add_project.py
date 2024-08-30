@@ -1,8 +1,5 @@
 import streamlit as st
 import mysql.connector as connection
-import time
-
-
 
 def add_project_func():
 
@@ -46,9 +43,9 @@ def add_project_func():
         st.write("For year:", year)
         idot_share_year = st.number_input("IDOT share:", value=None, format="%0.2f", key=idot_share_year)
         cost_share_year = st.number_input("Cost share:", value=None, format="%0.2f", key=cost_share_year)
-        subadmin_cost_year = st.number_input("IDOT share:", value=None, format="%0.2f", key=subadmin_cost_year)
-        total_budget_year = st.number_input("IDOT share:", value=None, format="%0.2f", key=total_budget_year)
-        st.write(idot_share_year, cost_share_year)
+        subadmin_cost_year = st.number_input("Subadmin cost:", value=None, format="%0.2f", key=subadmin_cost_year)
+        total_budget_year = st.number_input("Total budget for project for the year:", value=None, format="%0.2f", key=total_budget_year)
+        # st.write(idot_share_year, cost_share_year)
 
     mydb = connection.connect(host="ls-0d272b6d055951932dd7f1404e6322222517d8bd.caoof4uxeqnq.us-east-1.rds.amazonaws.com",
                                   database = 'dbmaster_deb',
