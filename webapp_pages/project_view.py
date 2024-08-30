@@ -25,6 +25,10 @@ def project_view_func():
     df_all= pd.read_sql(query_get_all_projects_data,mydb)
     df_selected = df_all[df_all['project_number']==selected_project]
 
+    query_get_all_projects_data = "SELECT * FROM project;"
+    df_all= pd.read_sql(query_get_all_projects_data,mydb)
+    df_selected = df_all[df_all['project_number']==selected_project]
+
 
     st.write("Project Title : ", df_selected.iloc[0][2])
     st.write("Subaward # : ", df_selected.iloc[0][3])
