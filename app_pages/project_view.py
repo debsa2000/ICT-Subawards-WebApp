@@ -109,9 +109,9 @@ def project_view_func():
     query_sum_cost_shares = "SELECT SUM(invoice_amount) FROM invoice WHERE proj_ref='" + selected_project + "'"
     sum_cost_share_amounts = pd.read_sql(query_sum_cost_shares,mydb)
     sum_cost_shares= round(sum_cost_share_amounts.iloc[0][0],2)
-    print(sum_cost_shares)
+    # print(sum_cost_shares)
     cost_share_required = sum_invoices/3
-    print(cost_share_required)
+    # print(cost_share_required)
 
     df_bar1 = pd.DataFrame(columns=['label','value'])
     df_bar1 = df_bar1._append({'label': 'cost share commited till last invoice', 'value': sum_cost_shares}, ignore_index=True)
