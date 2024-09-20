@@ -14,43 +14,75 @@ def project_view_func():
                                   user="subaward_user",
                                   passwd="ict_use_webapp",
                                   use_pure=True)
-    query_get_igas = "SELECT * FROM iga;"
-    result_igas = pd.read_sql(query_get_igas,mydb)
-    existing_igas = result_igas['iga_fy_range'].unique().tolist()
-    selected_iga= st.selectbox('Select IGA:', existing_igas)
-    # print(selected_iga)
-
-    query_get_project_numbers = "SELECT project_number FROM project;"
-    result_project_numbers = pd.read_sql(query_get_project_numbers,mydb)
-    existing_projects_list = result_project_numbers['project_number'].unique().tolist()
-    selected_project = st.selectbox('Select Project:', existing_projects_list)
-    # print(selected_project)
     
-    query_get_all_projects_data = "SELECT * FROM project;"
-    df_all= pd.read_sql(query_get_all_projects_data,mydb)
-    df_selected = df_all[df_all['project_number']==selected_project]
+    query_get_existing_igas = "SELECT * FROM iga;"
+    df_igas = pd.read_sql(query_get_existing_igas,mydb)
+    # print(df_igas)
+    iga_fy_ranges = []
+    for i,row in df_igas.iterrows():
+        start_year=row['iga_start_year']
+        end_year=row['iga_end_year']
+        fy_range= "FY" + str(start_year) + "-FY" + str(end_year)
+        iga_fy_ranges.append(fy_range)
+    print(iga_fy_ranges)
+    selected_iga_fy_range= st.selectbox('Select IGA:', iga_fy_ranges)
+    print(selected_iga_fy_range)
+    
+    for i,row in df_igas.iterrows():
+        if row['iga_fy_range']==selected_iga_fy_range:
+            selected_iga_code=row['iga_code']
 
-    query_get_all_projects_data = "SELECT * FROM project;"
-    df_all= pd.read_sql(query_get_all_projects_data,mydb)
-    df_selected = df_all[df_all['project_number']==selected_project]
+    query_projects_in_selected_iga = "SELECT project_number FROM project where iga_ref=" + str(selected_iga_code) + ";"
+    result_projects_in_selected_iga = pd.read_sql(query_projects_in_selected_iga,mydb)
+    existing_projects = result_projects_in_selected_iga['project_number'].tolist()
 
+    if len(existing_projects)==0:
+        st.write("No projects added yet for currently selected IGA.")
+        return
+    else:
+        selected_project = st.selectbox('Select Project:', existing_projects)
+        # print(selected_project)
+    
+    query_selected_project = "SELECT * FROM project WHERE project_number='" + str(selected_project) + "' and iga_ref=" + str(selected_iga_code) + ";"
+    df_selected_project= pd.read_sql(query_selected_project,mydb)
+    # print(df_selected_project)
 
-    st.write("Project Title : ", df_selected.iloc[0][2])
-    st.write("Subaward # : ", df_selected.iloc[0][3])
-    st.write("Grant Code: ", df_selected.iloc[0][4])
-    st.write("Sub : ", df_selected.iloc[0][5])
-    st.write("Principal Investigator: ", df_selected.iloc[0][6])
+    st.write("")
 
-    sum_idot_shares=0
+    st.header("Project Details:")
 
+    st.write("Project Title : ", df_selected_project['project_title'][0])
+    st.write("Subaward # : ", df_selected_project['sub_number'][0])
+    st.write("Grant Code: ",df_selected_project['grant_code'][0])
+    st.write("Sub : ", df_selected_project['sub_name'][0])
+    st.write("Principal Investigator: ", df_selected_project['p_i'][0])
+
+    st.write("")
 
     # Chart 1
+
+    st.header("Total Budget:")
 
     query_get_project_budgets = "SELECT * FROM budget WHERE project_ref='" + selected_project + "'"
     df_budgets = pd.read_sql(query_get_project_budgets,mydb)
     df_budgets = df_budgets.drop(['project_ref'], axis=1)
-    st.dataframe(df_budgets)
+
+    df_budgets_styler = df_budgets.style.format({"idot_share": lambda x : '$ {:,.2f}'.format(x),
+                                          "cost_share": lambda x : '$ {:,.2f}'.format(x),
+                                          "subadmin_cost": lambda x : '$ {:,.2f}'.format(x),
+                                          "total_budget": lambda x : '$ {:,.2f}'.format(x)})
+    st.dataframe(df_budgets_styler,
+                 hide_index=True,
+                 column_config={"fy": st.column_config.NumberColumn("FY", format="%d"),
+                                "idot_share" : "IDOT share",
+                                "cost_share": "Cost share",
+                                "subadmin_cost": "Sub-Admin cost",
+                                "total_budget": "Total budget for year"})
+    
     df_pie1 = pd.DataFrame(columns=['label','value'])
+
+    sum_idot_shares=0
+
     for i,row in df_budgets.iterrows():
         fy=str(row['fy'])[:-2]
 
@@ -72,15 +104,16 @@ def project_view_func():
         
         # print(i, fy, idot_share, cost_share, subadmin_cost)
 
-    st.dataframe(df_pie1)
-
     fig1 = px.pie(df_pie1, values='value', names='label', title='Initial allocation of total project budget for selected IGA')
     fig1.update_traces(textinfo='value+percent+label')
     fig1.update_layout(showlegend=False)
     st.plotly_chart(fig1)
 
+    st.write("")
 
     # Chart 2
+
+    st.header("Invoicing Status:")
 
     query_get_invoices = "SELECT * FROM invoice WHERE proj_ref='" + selected_project + "'"
     df_invoices = pd.read_sql(query_get_invoices,mydb)
@@ -106,7 +139,9 @@ def project_view_func():
 
     # Chart 3
 
-    query_sum_cost_shares = "SELECT SUM(invoice_amount) FROM invoice WHERE proj_ref='" + selected_project + "'"
+    st.header("Cost Share Status")
+
+    query_sum_cost_shares = "SELECT SUM(cost_share) FROM invoice WHERE proj_ref='" + selected_project + "'"
     sum_cost_share_amounts = pd.read_sql(query_sum_cost_shares,mydb)
     sum_cost_shares= round(sum_cost_share_amounts.iloc[0][0],2)
     # print(sum_cost_shares)
@@ -125,28 +160,3 @@ def project_view_func():
 
 
     mydb.close()
-    
-
-
-
-    # df = preprocessing.get_dataframe()
-    
-    # iga_selected = st.selectbox("Select IGA: ",("FY 2018 - 2024", "FY 2025 - 2030"))
-
-
-    # all_projects_list = df['Project Number:'].unique().tolist()
-    # project_selected = st.selectbox('Project Number:', all_projects_list)
-
-    # df_one = df[df['Project Number:']==project_selected]
-    # df_one = df_one.transpose()
-    # df_one = df_one.reset_index()
-    # df_one.columns = ['Project Attribute', 'Value']
-    # df_one = df_one[df_one['Value'].notna()]
-
-    # st.write("Project Title : ", df_one.iloc[1][1])
-    # st.write("Subaward # : ", df_one.iloc[2][1])
-    # st.write("Grant Code: ", df_one.iloc[3][1])
-    # st.write("Sub : ", df_one.iloc[4][1])
-    # st.write("Principal Investigator: ", df_one.iloc[5][1])
-
-    # st.dataframe(df_one.astype(str), use_container_width=True, hide_index=True)

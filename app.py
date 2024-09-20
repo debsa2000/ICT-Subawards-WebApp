@@ -7,7 +7,7 @@ style = {
         "justify-content": "left",
     }
 }
-page = st_navbar(pages=["All Projects View", "Project View", "Add Invoice", "Add Project"], logo_path='images/ICTlogo.svg',styles=style)
+page = st_navbar(pages=["All Projects View", "Project View", "Add Invoice", "Add Project", "Add IGA"], logo_path='images/ICTlogo.svg',styles=style)
 
 if page == "All Projects View":
     app_pages.all_projects_view.all_projects_view_func()
@@ -17,4 +17,6 @@ elif page == "Add Invoice":
     app_pages.add_invoice.add_invoice_func()
 elif page == "Add Project":
     app_pages.add_project.add_project_func()
+elif page == "Add IGA":
+    app_pages.add_iga.add_iga_func()
 
