@@ -17,6 +17,6 @@ elif page == "Add Invoice":
     app_pages.add_invoice.add_invoice_func()
 elif page == "Add Project":
     app_pages.add_project.add_project_func()
-elif page == "Add IGA":
+elif page == "IGA":
     app_pages.add_iga.add_iga_func()
 
