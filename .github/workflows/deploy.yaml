@@ -31,4 +31,4 @@ jobs:
       run: |
         echo "$KEY" > ~/key.pem
         chmod 600 ~/key.pem
-        ssh -o StrictHostKeyChecking=no -i ~/key.pem $USER@$HOST 'cd ~/ICT-Subawards-WebApp && git pull && ./start_streamlit.sh'
+        ssh -o StrictHostKeyChecking=no -i ~/key.pem $USER@$HOST 'cd ~/myapp && git pull && source venv/bin/activate && pkill streamlit && pip install -r requirements.txt && nohup streamlit run app.py &'
