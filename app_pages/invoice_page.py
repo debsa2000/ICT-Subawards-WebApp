@@ -3,7 +3,7 @@ import mysql.connector as connection
 import pandas as pd
 
 
-def add_invoice_func():
+def invoice_page_func():
 
     try:
         mydb = connection.connect(host="ls-0d272b6d055951932dd7f1404e6322222517d8bd.caoof4uxeqnq.us-east-1.rds.amazonaws.com",

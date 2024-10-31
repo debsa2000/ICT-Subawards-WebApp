@@ -14,9 +14,8 @@ if page == "All Projects View":
 elif page == "Project View":
     app_pages.project_view.project_view_func()
 elif page == "Invoice":
-    app_pages.add_invoice.add_invoice_func()
+    app_pages.invoice_page.invoice_page_func()
 elif page == "Project":
-    app_pages.add_project.add_project_func()
+    app_pages.project_page.project_page_func()
 elif page == "IGA":
-    app_pages.add_iga.add_iga_func()
-
+    app_pages.iga_page.iga_page_func()
