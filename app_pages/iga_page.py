@@ -6,35 +6,37 @@ import datetime
 def iga_page_func():
     try:
         mydb = connection.connect(host="ls-0d272b6d055951932dd7f1404e6322222517d8bd.caoof4uxeqnq.us-east-1.rds.amazonaws.com",
-                                  database = 'dbmaster_deb',
-                                  user="subaward_user",
-                                  passwd="ict_use_webapp",
-                                  use_pure=True)
+                                database = 'dbmaster_deb',
+                                user="subaward_user",
+                                passwd="ict_use_webapp",
+                                use_pure=True)
     except Exception as e:
         st.write(str(e))
-        return
     
-    query_fetch = "SELECT * FROM iga;"
-    iga_table = pd.read_sql(query_fetch,mydb)
-    
-    st.write("Existing IGAs:")
-    df_igas = iga_table.style.format({"iga_subaward_total": lambda x : '$ {:,.2f}'.format(x)})
+    st.subheader("Existing IGAs:")
+    query1 = "SELECT * FROM iga;"
+    igas = pd.read_sql(query1, mydb, index_col=['iga_code'])
+    df_igas = igas.style.format({"iga_subaward_total": lambda x : '$ {:,.2f}'.format(x)})
     no_of_igas = len(df_igas.index)
 
-    st.dataframe(df_igas,
-                 hide_index=True,
-                 column_config={"iga_code": "IGA code",
-                                "iga_fy_range" : "IGA FY range",
-                                "iga_subaward_total": st.column_config.NumberColumn("IGA Subaward Total"),
-                                "iga_start_year": st.column_config.NumberColumn("IGA start year", format="%d"),
-                                "iga_end_year": st.column_config.NumberColumn("IGA end year", format="%d")})
+    st.table(df_igas)
+                #  hide_index=True,
+                #  column_config={"iga_code": "IGA code",
+                #                 "iga_fy_range" : "IGA FY range",
+                #                 "iga_subaward_total": st.column_config.NumberColumn("IGA Subaward Total"),
+                #                 "iga_start_year": st.column_config.NumberColumn("IGA start year", format="%d"),
+                #                 "iga_end_year": st.column_config.NumberColumn("IGA end year", format="%d")})
     
     # Add new IGA form:
     with st.form("add_new_iga"):
-        st.write("Add new IGA:")
+        st.subheader("Add new IGA:")
+        query2 = "SELECT COUNT(*) FROM iga;"
+        count_igas = pd.read_sql(query2,mydb)
+        no_of_igas = int(count_igas.iloc[0][0])
+
         this_year = datetime.date.today().year
-        new_iga_start_year = st.selectbox("Select start year:", range(this_year-20, this_year+30, 1), index=None, placeholder="Select start year")
-        new_iga_end_year = st.selectbox("Select end year:", range(this_year-20, this_year+30, 1), index=None, placeholder="Select end year")
+        new_iga_start_year = st.selectbox("Select IGA start year:", range(2024, this_year+30, 1), index=None, placeholder="Select start year")
+        new_iga_end_year = st.selectbox("Select IGA end year:", range(2024, this_year+30, 1), index=None, placeholder="Select end year")
         new_iga_total_subaward = st.number_input("Enter total subaward amount for new IGA: ", step=0.01)
         new_iga_code=no_of_igas+1
         new_iga_fy_range = "FY"+str(new_iga_start_year)+"-FY"+str(new_iga_end_year)
@@ -50,18 +52,17 @@ def iga_page_func():
             mydb.commit()
 
     # Edit existing IGA form
-    st.write("Edit existing IGA:")
+    st.subheader("Edit existing IGA:")
 
-    existing_igas =  iga_table['iga_fy_range'].to_list()
+    existing_igas =  igas['iga_fy_range'].to_list()
     selected_iga = st.selectbox('Choose IGA to be edited:', existing_igas)
 
-    iga = iga_table.loc[iga_table['iga_fy_range'] == selected_iga]
-    iga=iga.transpose()
-    iga=iga.reset_index()
-    iga.columns = ['attribute','value']
-    iga.set_axis(['attribute', 'value'], axis='columns')
-    st.dataframe(iga)
-    
-    selected = st.multiselect("Choose which attributes to change:", iga['attribute'])
+    edit_iga = igas[igas['iga_fy_range'] == selected_iga]
+    edit_iga = edit_iga.astype(str)
+    edit_iga = edit_iga.transpose()
+    edit_iga = edit_iga.reset_index()
+    edit_iga.columns = ['IGA details','Current Value']
+    st.dataframe(edit_iga, hide_index=True, width=500)
+    selected_changes = st.multiselect("Choose which attributes to change:", edit_iga['IGA details'])
     
     mydb.close()

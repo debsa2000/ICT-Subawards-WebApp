@@ -7,6 +7,7 @@ style = {
         "justify-content": "left",
     }
 }
+
 page = st_navbar(pages=["All Projects View", "Project View", "Invoice", "Project", "IGA"], logo_path='images/ICTlogo.svg',styles=style)
 
 if page == "All Projects View":
