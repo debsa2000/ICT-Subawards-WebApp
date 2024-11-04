@@ -1,44 +1,46 @@
 import streamlit as st
 import mysql.connector as connection
 import pandas as pd
+import datetime
+import sys
 
 def invoice_page_func():
-    
-
     try:
         mydb = connection.connect(host="ls-0d272b6d055951932dd7f1404e6322222517d8bd.caoof4uxeqnq.us-east-1.rds.amazonaws.com",
                                   database = 'dbmaster_deb',
                                   user="subaward_user",
                                   passwd="ict_use_webapp",
                                   use_pure=True)
-        query1 = "SELECT * FROM project;"
-        result_df = pd.read_sql(query1,mydb)
-        existing_projects_list = result_df['project_number'].unique().tolist()
     except Exception as e:
-        mydb.close()
         st.write(str(e))
-
-    inv_project = st.selectbox('Select existing project that invoice belongs to:', existing_projects_list)
+    
+    query1 = "SELECT * FROM project;"
+    result_df = pd.read_sql(query1,mydb)
+    existing_projects_list = result_df['project_number'].unique().tolist()  
+    inv_project = st.selectbox('Select existing project to get invoices:', existing_projects_list)
 
     query2 = "SELECT * FROM invoice WHERE proj_ref='" + str(inv_project) + "';"
     existing_invoices = pd.read_sql(query2,mydb, index_col=['invoice_number'])
     st.table(existing_invoices)
+
+    query3 = "SELECT COUNT(*) FROM invoice WHERE proj_ref='" + str(inv_project) + "';"
+    count_invoices = pd.read_sql(query3,mydb)
+    # print(count_invoices.iloc[0][0])
+
+    query4 = "SELECT end_date FROM invoice WHERE proj_ref='" + str(inv_project) + "' ORDER BY invoice_number DESC LIMIT 1;"
+    latest_end_date = pd.read_sql(query4,mydb)
+    # print(latest_end_date.iloc[0][0])
+    # print(type(latest_end_date.iloc[0][0]))
+    # print(latest_end_date.iloc[0][0] + datetime.timedelta(days=1))
     
     with st.form("add_new_invoice_form"):
-        st.write("Add new invoice")
+        st.subheader("Add new invoice")
 
-        query3 = "SELECT COUNT(*) FROM invoice WHERE proj_ref='" + str(inv_project) + "';"
-        count_invoices = pd.read_sql(query3,mydb)
-        st.write(count_invoices)
-        inv_number = st.number_input("Enter invoice number: ", step=1)
-        inv_start_date = st.date_input("Select start date for invoice billing period:", format="MM-DD-YYYY", value=None)
-
-        query2 = "SELECT start_date FROM invoice WHERE start_date < " + inv_start_date + " ORDER BY start_date DESC LIMIT 1"
-        st.write("previous start date is: " + query2)
-
-        inv_end_date = st.date_input("Select end date for invoice billing period:", format="MM-DD-YYYY", value=None)      
-        inv_amount = st.text_input("Enter invoice amount in USD:")
-        inv_cost_share = st.text_input("Enter cost share amount for this invoice in USD:")
+        inv_number = int(count_invoices.iloc[0][0]) + 1
+        inv_start_date = latest_end_date.iloc[0][0] + datetime.timedelta(days=1)
+        inv_end_date = st.date_input("Select end date for the new invoice billing period:", format="MM-DD-YYYY", value=None)
+        inv_amount = st.number_input("Enter invoice amount in USD:")
+        inv_cost_share = st.number_input("Enter cost share amount for this invoice in USD:")
         
         final = st.checkbox("This is the final invoice")
         if final:
@@ -46,17 +48,33 @@ def invoice_page_func():
         else:
             inv_final=0
 
-        # uploaded_file = st.file_uploader("Upload invoice pdf:")
+        uploaded_file = st.file_uploader("Upload invoice pdf:")
 
         submitted = st.form_submit_button("Submit")
         
         if submitted:
-            st.write("Project?", inv_project, "Inv number", inv_number, "Start date", inv_start_date, "End date", inv_end_date, "Inv $", inv_amount, "Inv Cost Share", inv_cost_share, "Final?", inv_final)
+            # st.write("Project?", inv_project, "Inv number", inv_number, "Start date", inv_start_date, "End date", inv_end_date, "Inv $", inv_amount, "Inv Cost Share", inv_cost_share, "Final?", inv_final)
+            mycursor = mydb.cursor()
+            query = "INSERT INTO invoice (invoice_number, start_date, end_date, invoice_amount, cost_share, final, proj_ref) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+            val = (inv_number, inv_start_date, inv_end_date, inv_amount, inv_cost_share, inv_final, inv_project)
+            mycursor.execute(query, val)
+            mydb.commit()
+            print(mycursor.rowcount, "record inserted.")
 
-    mycursor = mydb.cursor()
-    query = "INSERT INTO invoice (invoice_number, start_date, end_date, invoice_amount, cost_share, final, proj_ref) VALUES (%s, %s, %s, %s, %s, %s, %s);"
-    val = (inv_number, inv_start_date, inv_end_date, inv_amount, inv_cost_share, inv_final, inv_project)
-    mycursor.execute(query, val)
-    mydb.commit()
-    print(mycursor.rowcount, "record inserted.")
+    # Edit existing invoice
+    st.subheader("Edit existing invoice:")
+    edit_invoices = pd.read_sql(query2,mydb)
+    selected_invoice = st.selectbox("Select invoice to edit:", edit_invoices)
+
+    query5= "SELECT * FROM invoice WHERE proj_ref='" + str(inv_project) + "' AND invoice_number=" + str(selected_invoice) + ";"
+    edit_invoice = pd.read_sql(query5,mydb)
+    edit_invoice = edit_invoice.astype(str)
+    edit_invoice = edit_invoice.transpose()
+    edit_invoice = edit_invoice.reset_index()
+    edit_invoice.columns = ['Invoice details','Current Value']
+    st.dataframe(edit_invoice, hide_index=True, width=500)
+    selected_changes = st.multiselect("Choose which attributes to change:", edit_invoice['Invoice details'])
+
+    
+
     mydb.close()

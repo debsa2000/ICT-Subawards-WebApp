@@ -24,9 +24,9 @@ def project_view_func():
         end_year=row['iga_end_year']
         fy_range= "FY" + str(start_year) + "-FY" + str(end_year)
         iga_fy_ranges.append(fy_range)
-    print(iga_fy_ranges)
+    # print(iga_fy_ranges)
     selected_iga_fy_range= st.selectbox('Select IGA:', iga_fy_ranges)
-    print(selected_iga_fy_range)
+    # print(selected_iga_fy_range)
     
     for i,row in df_igas.iterrows():
         if row['iga_fy_range']==selected_iga_fy_range:
