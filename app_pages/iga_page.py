@@ -35,11 +35,11 @@ def iga_page_func():
         no_of_igas = int(count_igas.iloc[0][0])
 
         this_year = datetime.date.today().year
-        new_iga_start_year = st.selectbox("Select IGA start year:", range(2024, this_year+30, 1), index=None, placeholder="Select start year")
-        new_iga_end_year = st.selectbox("Select IGA end year:", range(2024, this_year+30, 1), index=None, placeholder="Select end year")
-        new_iga_total_subaward = st.number_input("Enter total subaward amount for new IGA: ", step=0.01)
-        new_iga_code=no_of_igas+1
-        new_iga_fy_range = "FY"+str(new_iga_start_year)+"-FY"+str(new_iga_end_year)
+        iga_start_year = st.selectbox("Select IGA start year:", range(2024, this_year+30, 1), index=None, placeholder="Select start year")
+        iga_end_year = st.selectbox("Select IGA end year:", range(2024, this_year+30, 1), index=None, placeholder="Select end year")
+        iga_subaward_total = st.number_input("Enter total subaward amount for new IGA: ", step=0.01)
+        iga_code = no_of_igas+1
+        iga_fy_range = "FY"+str(iga_start_year)+"-FY"+str(iga_end_year)
         
         submitted = st.form_submit_button("Submit IGA")
         
@@ -47,7 +47,7 @@ def iga_page_func():
             # print(new_iga_code, new_iga_start_year, new_iga_end_year, new_iga_total_subaward)
             mycursor = mydb.cursor()
             query_insert = "INSERT INTO iga (iga_code, iga_fy_range, iga_subaward_total, iga_start_year, iga_end_year) VALUES (%s, %s, %s, %s, %s);"
-            val = (new_iga_code, new_iga_fy_range, new_iga_total_subaward, new_iga_start_year, new_iga_end_year)
+            val = (iga_code, iga_fy_range, iga_subaward_total, iga_start_year, iga_end_year)
             mycursor.execute(query_insert, val)
             mydb.commit()
 
@@ -63,6 +63,18 @@ def iga_page_func():
     edit_iga = edit_iga.reset_index()
     edit_iga.columns = ['IGA details','Current Value']
     st.dataframe(edit_iga, hide_index=True, width=500)
-    selected_changes = st.multiselect("Choose which attributes to change:", edit_iga['IGA details'])
+
+    changeable_attributes= edit_iga['IGA details'].tolist()
+    changeable_attributes.remove('iga_fy_range')
+    selected_changes = st.multiselect("Choose which attributes to change:", changeable_attributes)
+
+    for attribute in selected_changes:
+        if attribute=='iga_subaward_total':
+            new_iga_subaward_total = st.number_input("Change total subaward amount to (in USD): ", step=0.01)
+        if attribute=='iga_start_year':
+            new_iga_start_year = st.selectbox("Change IGA start year to:", range(2024, this_year+30, 1), index=None)
+        if attribute=='iga_end_year':
+            new_iga_end_year = st.selectbox("Change IGA start year to:", range(2024, this_year+30, 1), index=None)
+
     
     mydb.close()

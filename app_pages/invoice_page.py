@@ -73,8 +73,50 @@ def invoice_page_func():
     edit_invoice = edit_invoice.reset_index()
     edit_invoice.columns = ['Invoice details','Current Value']
     st.dataframe(edit_invoice, hide_index=True, width=500)
-    selected_changes = st.multiselect("Choose which attributes to change:", edit_invoice['Invoice details'])
 
+    changeable_attributes= edit_invoice['Invoice details'].tolist()
+    changeable_attributes.remove('proj_ref')
+    changeable_attributes.remove('invoice_number')
+    # print(type(changeable_attributes))
+    # print(changeable_attributes)
+    selected_changes = st.multiselect("Choose which attributes to change:", changeable_attributes)
+
+    for attribute in selected_changes:
+        if attribute=='start_date':
+            new_start_date = st.date_input("Change start date to:", format="MM-DD-YYYY", value=None)
+            # print(new_start_date)
+
+        if attribute=='end_date':
+            new_end_date = st.date_input("Change end date to:", format="MM-DD-YYYY", value=None)
+            # print(new_end_date)
+        
+        if attribute=='invoice_amount':
+            new_inv_amount = st.number_input("Change invoice amount to (in USD):")
+            # print(new_inv_amount)
+        
+        if attribute=='cost_share':
+            new_cost_share = st.number_input("Change cost share amount for this invoice to (in USD):")
+            # print(new_cost_share)
+
+        if attribute=='final':
+            new_final = st.radio('Make this final invoice', ['Yes','No'])
+            if new_final=='Yes':
+                new_inv_final=1
+            if new_final=='No':
+                new_inv_final=0
+            # print(new_inv_final)
     
+    new_changes_submitted = st.button("Submit Changes")
+
+    # if new_changes_submitted:
+        # print("changes submitted clicked")
+        # st.write("Project?", inv_project, "Inv number", inv_number, "Start date", inv_start_date, "End date", inv_end_date, "Inv $", inv_amount, "Inv Cost Share", inv_cost_share, "Final?", inv_final)
+        # mycursor = mydb.cursor()
+        # query = "INSERT INTO invoice (invoice_number, start_date, end_date, invoice_amount, cost_share, final, proj_ref) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+        # val = (inv_number, new_start_date, new_end_date, new_inv_amount, new_cost_share, new_inv_final, inv_project)
+        # mycursor.execute(query, val)
+        # mydb.commit()
+        # print(mycursor.rowcount, "record changed.")
+
 
     mydb.close()

@@ -49,7 +49,7 @@ def project_view_func():
 
     st.write("")
 
-    st.header("Project Details:")
+    st.subheader("Project Details")
 
     st.write("Project Title : ", df_selected_project['project_title'][0])
     st.write("Subaward # : ", df_selected_project['sub_number'][0])
@@ -61,7 +61,7 @@ def project_view_func():
 
     # Chart 1
 
-    st.header("Total Budget:")
+    st.subheader("Total Project Budget for IGA " + selected_iga_fy_range)
 
     query_get_project_budgets = "SELECT * FROM budget WHERE project_ref='" + selected_project + "'"
     df_budgets = pd.read_sql(query_get_project_budgets,mydb)
@@ -104,7 +104,7 @@ def project_view_func():
         
         # print(i, fy, idot_share, cost_share, subadmin_cost)
 
-    fig1 = px.pie(df_pie1, values='value', names='label', title='Initial allocation of total project budget for selected IGA')
+    fig1 = px.pie(df_pie1, values='value', names='label')
     fig1.update_traces(textinfo='value+percent+label')
     fig1.update_layout(showlegend=False)
     st.plotly_chart(fig1)
@@ -113,12 +113,12 @@ def project_view_func():
 
     # Chart 2
 
-    st.header("Invoicing Status:")
+    st.subheader("Current Invoicing Status")
 
     query_get_invoices = "SELECT * FROM invoice WHERE proj_ref='" + selected_project + "'"
     df_invoices = pd.read_sql(query_get_invoices,mydb)
     df_invoices = df_invoices.drop(['proj_ref'], axis=1)
-    st.dataframe(df_invoices)
+    # st.dataframe(df_invoices)
 
     query_sum_invoices = "SELECT SUM(invoice_amount) FROM invoice WHERE proj_ref='" + selected_project + "'"
     sum_invoice_amounts = pd.read_sql(query_sum_invoices,mydb)
@@ -127,11 +127,11 @@ def project_view_func():
     # print(sum_idot_shares)
 
     df_pie2 = pd.DataFrame(columns=['label','value'])
-    df_pie2 = df_pie2._append({'label': 'spent', 'value': sum_invoices}, ignore_index=True)
-    df_pie2 = df_pie2._append({'label': 'available to spend', 'value': sum_idot_shares-sum_invoices}, ignore_index=True)
+    df_pie2 = df_pie2._append({'label': 'Total invoiced amount', 'value': sum_invoices}, ignore_index=True)
+    df_pie2 = df_pie2._append({'label': 'Amount available to invoice', 'value': sum_idot_shares-sum_invoices}, ignore_index=True)
     st.dataframe(df_pie2)
 
-    fig2 = px.pie(df_pie2, values='value', names='label', title='Total obligated to date (for all years irrespective of IGA)')
+    fig2 = px.pie(df_pie2, values='value', names='label')
     fig2.update_traces(textposition='outside', textinfo='value+percent+label')
     fig2.update_layout(showlegend=False)
     st.plotly_chart(fig2)
@@ -155,7 +155,7 @@ def project_view_func():
                                   y=[sum_cost_shares,cost_share_required], 
                                   text=[round(sum_cost_shares,2),round(cost_share_required,2)],
                                   textposition="outside")])
-    fig3.update_layout(title="Cost Share Status", xaxis_title="Cost Share", yaxis_title="Amount in $")
+    fig3.update_layout(xaxis_title="Cost Share", yaxis_title="Amount in $")
     st.plotly_chart(fig3)
 
 
